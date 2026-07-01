@@ -55,14 +55,3 @@ cmake --build build -j"$(nproc)"
 
 Дальнейшая навигация — по номерам пунктов.
 
-## Структура проекта
-
-```
-.
-├── CMakeLists.txt
-└── src/
-    ├── main.cpp      # точка входа
-    ├── App.hpp/.cpp  # интерактивное меню
-    ├── Database.hpp/.cpp  # работа с SQLite
-    └── Models.hpp    # структуры данных
-```
