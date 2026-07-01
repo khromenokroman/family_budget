@@ -189,6 +189,15 @@ std::vector<Transaction> Database::listTransactions(int limit) const {
     return result;
 }
 
+bool Database::deleteTransaction(int id) {
+    Statement stmt(db_, "DELETE FROM transactions WHERE id = ?;");
+    sqlite3_bind_int(stmt.get(), 1, id);
+    if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
+        throw std::runtime_error(std::string("Не удалось удалить операцию: ") + sqlite3_errmsg(db_));
+    }
+    return sqlite3_changes(db_) > 0;
+}
+
 double Database::totalByType(TransactionType type) const {
     Statement stmt(db_, "SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = ?;");
     bindText(stmt, 1, toString(type));

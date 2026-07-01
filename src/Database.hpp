@@ -24,6 +24,7 @@ public:
     int addTransaction(int categoryId, double amount, TransactionType type,
                         const std::string& date, const std::string& note);
     std::vector<Transaction> listTransactions(int limit) const;
+    bool deleteTransaction(int id);
 
     double totalByType(TransactionType type) const;
     std::vector<CategoryTotal> totalsByCategory(TransactionType type) const;

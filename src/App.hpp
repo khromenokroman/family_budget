@@ -17,7 +17,9 @@ private:
     void listCategoriesFlow();
     void addCategoryFlow();
     void deleteCategoryFlow();
+    void transactionsMenu();
     void showTransactionsFlow();
+    void deleteTransactionFlow();
     void statisticsMenu();
     void showBalanceFlow();
     void showCategoryBreakdownFlow(TransactionType type);

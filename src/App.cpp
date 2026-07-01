@@ -89,7 +89,7 @@ void App::run() {
             case 1: addTransactionFlow(TransactionType::Income); break;
             case 2: addTransactionFlow(TransactionType::Expense); break;
             case 3: categoriesMenu(); break;
-            case 4: showTransactionsFlow(); break;
+            case 4: transactionsMenu(); break;
             case 5: statisticsMenu(); break;
             case 0: return;
             default: std::cout << "Нет такого пункта меню.\n"; break;
@@ -103,7 +103,7 @@ void App::showMainMenu() {
     std::cout << "1. Добавить доход\n";
     std::cout << "2. Добавить расход\n";
     std::cout << "3. Категории\n";
-    std::cout << "4. Список операций\n";
+    std::cout << "4. Операции\n";
     std::cout << "5. Статистика\n";
     std::cout << "0. Выход\n";
 }
@@ -201,6 +201,24 @@ void App::deleteCategoryFlow() {
     std::cout << (deleted ? "Категория удалена.\n" : "Категория не найдена.\n");
 }
 
+void App::transactionsMenu() {
+    while (true) {
+        std::cout << "--- Операции ---\n";
+        std::cout << "1. Список операций\n";
+        std::cout << "2. Удалить операцию\n";
+        std::cout << "0. Назад\n";
+        int choice = readMenuChoice("Выберите пункт: ");
+        std::cout << "\n";
+        switch (choice) {
+            case 1: showTransactionsFlow(); break;
+            case 2: deleteTransactionFlow(); break;
+            case 0: return;
+            default: std::cout << "Нет такого пункта меню.\n"; break;
+        }
+        std::cout << "\n";
+    }
+}
+
 void App::showTransactionsFlow() {
     auto transactions = db_.listTransactions(50);
     if (transactions.empty()) {
@@ -209,7 +227,7 @@ void App::showTransactionsFlow() {
     }
     std::cout << "Последние операции (не более 50):\n";
     for (const auto& t : transactions) {
-        std::cout << t.date << "  "
+        std::cout << "[" << t.id << "]  " << t.date << "  "
                    << (t.type == TransactionType::Income ? "+" : "-");
         printMoney(t.amount);
         std::cout << "  " << t.categoryName;
@@ -218,6 +236,14 @@ void App::showTransactionsFlow() {
         }
         std::cout << "\n";
     }
+}
+
+void App::deleteTransactionFlow() {
+    showTransactionsFlow();
+    int id = readMenuChoice("Введите ID операции для удаления (0 - отмена): ");
+    if (id == 0) return;
+    bool deleted = db_.deleteTransaction(id);
+    std::cout << (deleted ? "Операция удалена.\n" : "Операция не найдена.\n");
 }
 
 void App::statisticsMenu() {
