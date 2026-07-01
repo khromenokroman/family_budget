@@ -1,0 +1,29 @@
+# Каталоги сборки CMake
+cmake-build-*/
+build/
+
+# Файлы CLion / IDEA
+.idea/
+
+# Кэш и артефакты CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Скомпилированные бинарные файлы
+*.o
+*.obj
+*.out
+*.exe
+*.a
+*.so
+*.dylib
+
+# Локальные инструкции для Claude Code
+CLAUDE.md
