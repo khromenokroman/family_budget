@@ -7,11 +7,11 @@ enum class TransactionType {
     Expense
 };
 
-inline const char* toString(TransactionType type) {
+inline const char* to_string(TransactionType type) {
     return type == TransactionType::Income ? "income" : "expense";
 }
 
-inline TransactionType transactionTypeFromString(const std::string& s) {
+inline TransactionType transaction_type_from_string(const std::string& s) {
     return s == "income" ? TransactionType::Income : TransactionType::Expense;
 }
 

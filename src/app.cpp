@@ -9,14 +9,14 @@
 
 namespace {
 
-std::string readLine(const std::string& prompt) {
+std::string read_line(const std::string& prompt) {
     std::cout << prompt;
     std::string line;
     std::getline(std::cin, line);
     return line;
 }
 
-std::optional<double> parseDouble(const std::string& s) {
+std::optional<double> parse_double(const std::string& s) {
     try {
         size_t pos = 0;
         double value = std::stod(s, &pos);
@@ -27,7 +27,7 @@ std::optional<double> parseDouble(const std::string& s) {
     }
 }
 
-std::optional<int> parseInt(const std::string& s) {
+std::optional<int> parse_int(const std::string& s) {
     try {
         size_t pos = 0;
         int value = std::stoi(s, &pos);
@@ -38,25 +38,25 @@ std::optional<int> parseInt(const std::string& s) {
     }
 }
 
-double readPositiveAmount() {
+double read_positive_amount() {
     while (true) {
-        std::string s = readLine("Сумма: ");
-        auto value = parseDouble(s);
+        std::string s = read_line("Сумма: ");
+        auto value = parse_double(s);
         if (value && *value > 0) return *value;
         std::cout << "Введите положительное число.\n";
     }
 }
 
-int readMenuChoice(const std::string& prompt) {
+int read_menu_choice(const std::string& prompt) {
     while (true) {
-        std::string s = readLine(prompt);
-        auto value = parseInt(s);
+        std::string s = read_line(prompt);
+        auto value = parse_int(s);
         if (value) return *value;
         std::cout << "Введите число.\n";
     }
 }
 
-std::string currentDate() {
+std::string current_date() {
     std::time_t t = std::time(nullptr);
     std::tm tm{};
     localtime_r(&t, &tm);
@@ -65,14 +65,14 @@ std::string currentDate() {
     return oss.str();
 }
 
-std::string readDateOrToday() {
-    std::string today = currentDate();
-    std::string s = readLine("Дата (ГГГГ-ММ-ДД, Enter = сегодня " + today + "): ");
+std::string read_date_or_today() {
+    std::string today = current_date();
+    std::string s = read_line("Дата (ГГГГ-ММ-ДД, Enter = сегодня " + today + "): ");
     if (s.empty()) return today;
     return s;
 }
 
-void printMoney(double value) {
+void print_money(double value) {
     std::cout << std::fixed << std::setprecision(2) << value;
 }
 
@@ -82,15 +82,15 @@ App::App(Database& db) : db_(db) {}
 
 void App::run() {
     while (true) {
-        showMainMenu();
-        int choice = readMenuChoice("Выберите пункт: ");
+        show_main_menu();
+        int choice = read_menu_choice("Выберите пункт: ");
         std::cout << "\n";
         switch (choice) {
-            case 1: addTransactionFlow(TransactionType::Income); break;
-            case 2: addTransactionFlow(TransactionType::Expense); break;
-            case 3: categoriesMenu(); break;
-            case 4: transactionsMenu(); break;
-            case 5: statisticsMenu(); break;
+            case 1: add_transaction_flow(TransactionType::Income); break;
+            case 2: add_transaction_flow(TransactionType::Expense); break;
+            case 3: categories_menu(); break;
+            case 4: transactions_menu(); break;
+            case 5: statistics_menu(); break;
             case 0: return;
             default: std::cout << "Нет такого пункта меню.\n"; break;
         }
@@ -98,7 +98,7 @@ void App::run() {
     }
 }
 
-void App::showMainMenu() {
+void App::show_main_menu() {
     std::cout << "=== Семейный бюджет ===\n";
     std::cout << "1. Добавить доход\n";
     std::cout << "2. Добавить расход\n";
@@ -108,8 +108,8 @@ void App::showMainMenu() {
     std::cout << "0. Выход\n";
 }
 
-void App::addTransactionFlow(TransactionType type) {
-    auto categories = db_.listCategories(type);
+void App::add_transaction_flow(TransactionType type) {
+    auto categories = db_.list_categories(type);
     if (categories.empty()) {
         std::cout << "Нет ни одной категории для " << (type == TransactionType::Income ? "доходов" : "расходов")
                    << ". Сначала добавьте категорию.\n";
@@ -121,34 +121,34 @@ void App::addTransactionFlow(TransactionType type) {
         std::cout << "  " << (i + 1) << ". " << categories[i].name << "\n";
     }
 
-    int index = readMenuChoice("Выберите категорию: ");
+    int index = read_menu_choice("Выберите категорию: ");
     if (index < 1 || static_cast<size_t>(index) > categories.size()) {
         std::cout << "Нет такой категории.\n";
         return;
     }
     const Category& category = categories[index - 1];
 
-    double amount = readPositiveAmount();
-    std::string date = readDateOrToday();
-    std::string note = readLine("Комментарий (необязательно): ");
+    double amount = read_positive_amount();
+    std::string date = read_date_or_today();
+    std::string note = read_line("Комментарий (необязательно): ");
 
-    db_.addTransaction(category.id, amount, type, date, note);
+    db_.add_transaction(category.id, amount, type, date, note);
     std::cout << (type == TransactionType::Income ? "Доход" : "Расход") << " добавлен.\n";
 }
 
-void App::categoriesMenu() {
+void App::categories_menu() {
     while (true) {
         std::cout << "--- Категории ---\n";
         std::cout << "1. Список категорий\n";
         std::cout << "2. Добавить категорию\n";
         std::cout << "3. Удалить категорию\n";
         std::cout << "0. Назад\n";
-        int choice = readMenuChoice("Выберите пункт: ");
+        int choice = read_menu_choice("Выберите пункт: ");
         std::cout << "\n";
         switch (choice) {
-            case 1: listCategoriesFlow(); break;
-            case 2: addCategoryFlow(); break;
-            case 3: deleteCategoryFlow(); break;
+            case 1: list_categories_flow(); break;
+            case 2: add_category_flow(); break;
+            case 3: delete_category_flow(); break;
             case 0: return;
             default: std::cout << "Нет такого пункта меню.\n"; break;
         }
@@ -156,8 +156,8 @@ void App::categoriesMenu() {
     }
 }
 
-void App::listCategoriesFlow() {
-    auto categories = db_.listCategories();
+void App::list_categories_flow() {
+    auto categories = db_.list_categories();
     if (categories.empty()) {
         std::cout << "Категорий пока нет.\n";
         return;
@@ -176,42 +176,42 @@ void App::listCategoriesFlow() {
     }
 }
 
-void App::addCategoryFlow() {
-    std::string name = readLine("Название категории: ");
+void App::add_category_flow() {
+    std::string name = read_line("Название категории: ");
     if (name.empty()) {
         std::cout << "Название не может быть пустым.\n";
         return;
     }
-    std::string typeChoice = readLine("Тип (1 - доход, 2 - расход): ");
+    std::string typeChoice = read_line("Тип (1 - доход, 2 - расход): ");
     TransactionType type = (typeChoice == "1") ? TransactionType::Income : TransactionType::Expense;
 
-    if (db_.categoryExists(name, type)) {
+    if (db_.category_exists(name, type)) {
         std::cout << "Такая категория уже существует.\n";
         return;
     }
-    db_.addCategory(name, type);
+    db_.add_category(name, type);
     std::cout << "Категория добавлена.\n";
 }
 
-void App::deleteCategoryFlow() {
-    listCategoriesFlow();
-    int id = readMenuChoice("Введите ID категории для удаления (0 - отмена): ");
+void App::delete_category_flow() {
+    list_categories_flow();
+    int id = read_menu_choice("Введите ID категории для удаления (0 - отмена): ");
     if (id == 0) return;
-    bool deleted = db_.deleteCategory(id);
+    bool deleted = db_.delete_category(id);
     std::cout << (deleted ? "Категория удалена.\n" : "Категория не найдена.\n");
 }
 
-void App::transactionsMenu() {
+void App::transactions_menu() {
     while (true) {
         std::cout << "--- Операции ---\n";
         std::cout << "1. Список операций\n";
         std::cout << "2. Удалить операцию\n";
         std::cout << "0. Назад\n";
-        int choice = readMenuChoice("Выберите пункт: ");
+        int choice = read_menu_choice("Выберите пункт: ");
         std::cout << "\n";
         switch (choice) {
-            case 1: showTransactionsFlow(); break;
-            case 2: deleteTransactionFlow(); break;
+            case 1: show_transactions_flow(); break;
+            case 2: delete_transaction_flow(); break;
             case 0: return;
             default: std::cout << "Нет такого пункта меню.\n"; break;
         }
@@ -219,8 +219,8 @@ void App::transactionsMenu() {
     }
 }
 
-void App::showTransactionsFlow() {
-    auto transactions = db_.listTransactions(50);
+void App::show_transactions_flow() {
+    auto transactions = db_.list_transactions(50);
     if (transactions.empty()) {
         std::cout << "Операций пока нет.\n";
         return;
@@ -229,7 +229,7 @@ void App::showTransactionsFlow() {
     for (const auto& t : transactions) {
         std::cout << "[" << t.id << "]  " << t.date << "  "
                    << (t.type == TransactionType::Income ? "+" : "-");
-        printMoney(t.amount);
+        print_money(t.amount);
         std::cout << "  " << t.categoryName;
         if (!t.note.empty()) {
             std::cout << "  (" << t.note << ")";
@@ -238,15 +238,15 @@ void App::showTransactionsFlow() {
     }
 }
 
-void App::deleteTransactionFlow() {
-    showTransactionsFlow();
-    int id = readMenuChoice("Введите ID операции для удаления (0 - отмена): ");
+void App::delete_transaction_flow() {
+    show_transactions_flow();
+    int id = read_menu_choice("Введите ID операции для удаления (0 - отмена): ");
     if (id == 0) return;
-    bool deleted = db_.deleteTransaction(id);
+    bool deleted = db_.delete_transaction(id);
     std::cout << (deleted ? "Операция удалена.\n" : "Операция не найдена.\n");
 }
 
-void App::statisticsMenu() {
+void App::statistics_menu() {
     while (true) {
         std::cout << "--- Статистика ---\n";
         std::cout << "1. Баланс\n";
@@ -254,13 +254,13 @@ void App::statisticsMenu() {
         std::cout << "3. Доходы по категориям\n";
         std::cout << "4. По месяцам\n";
         std::cout << "0. Назад\n";
-        int choice = readMenuChoice("Выберите пункт: ");
+        int choice = read_menu_choice("Выберите пункт: ");
         std::cout << "\n";
         switch (choice) {
-            case 1: showBalanceFlow(); break;
-            case 2: showCategoryBreakdownFlow(TransactionType::Expense); break;
-            case 3: showCategoryBreakdownFlow(TransactionType::Income); break;
-            case 4: showMonthlyBreakdownFlow(); break;
+            case 1: show_balance_flow(); break;
+            case 2: show_category_breakdown_flow(TransactionType::Expense); break;
+            case 3: show_category_breakdown_flow(TransactionType::Income); break;
+            case 4: show_monthly_breakdown_flow(); break;
             case 0: return;
             default: std::cout << "Нет такого пункта меню.\n"; break;
         }
@@ -268,16 +268,16 @@ void App::statisticsMenu() {
     }
 }
 
-void App::showBalanceFlow() {
-    double income = db_.totalByType(TransactionType::Income);
-    double expense = db_.totalByType(TransactionType::Expense);
-    std::cout << "Доходы:  +"; printMoney(income); std::cout << "\n";
-    std::cout << "Расходы: -"; printMoney(expense); std::cout << "\n";
-    std::cout << "Баланс:   "; printMoney(income - expense); std::cout << "\n";
+void App::show_balance_flow() {
+    double income = db_.total_by_type(TransactionType::Income);
+    double expense = db_.total_by_type(TransactionType::Expense);
+    std::cout << "Доходы:  +"; print_money(income); std::cout << "\n";
+    std::cout << "Расходы: -"; print_money(expense); std::cout << "\n";
+    std::cout << "Баланс:   "; print_money(income - expense); std::cout << "\n";
 }
 
-void App::showCategoryBreakdownFlow(TransactionType type) {
-    auto totals = db_.totalsByCategory(type);
+void App::show_category_breakdown_flow(TransactionType type) {
+    auto totals = db_.totals_by_category(type);
     if (totals.empty()) {
         std::cout << "Данных пока нет.\n";
         return;
@@ -289,16 +289,16 @@ void App::showCategoryBreakdownFlow(TransactionType type) {
     for (const auto& ct : totals) {
         double percent = sum > 0 ? (ct.total / sum * 100.0) : 0.0;
         std::cout << "  " << ct.categoryName << ": ";
-        printMoney(ct.total);
+        print_money(ct.total);
         std::cout << " (" << std::fixed << std::setprecision(1) << percent << "%)\n";
     }
     std::cout << "Итого: ";
-    printMoney(sum);
+    print_money(sum);
     std::cout << "\n";
 }
 
-void App::showMonthlyBreakdownFlow() {
-    auto months = db_.totalsByMonth(12);
+void App::show_monthly_breakdown_flow() {
+    auto months = db_.totals_by_month(12);
     if (months.empty()) {
         std::cout << "Данных пока нет.\n";
         return;
@@ -306,11 +306,11 @@ void App::showMonthlyBreakdownFlow() {
     std::cout << "Месяц      Доход        Расход       Баланс\n";
     for (const auto& m : months) {
         std::cout << m.month << "   +";
-        printMoney(m.income);
+        print_money(m.income);
         std::cout << "   -";
-        printMoney(m.expense);
+        print_money(m.expense);
         std::cout << "   ";
-        printMoney(m.income - m.expense);
+        print_money(m.income - m.expense);
         std::cout << "\n";
     }
 }

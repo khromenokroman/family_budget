@@ -7,7 +7,7 @@
 
 namespace {
 
-std::string databasePath() {
+std::string database_path() {
     const char* home = std::getenv("HOME");
     std::string dir = home ? home : ".";
     return dir + "/.family_budget.db";
@@ -17,7 +17,7 @@ std::string databasePath() {
 
 int main() {
     try {
-        Database db(databasePath());
+        Database db(database_path());
         App app(db);
         app.run();
     } catch (const std::exception& e) {

@@ -11,17 +11,17 @@ public:
 private:
     Database& db_;
 
-    void showMainMenu();
-    void addTransactionFlow(TransactionType type);
-    void categoriesMenu();
-    void listCategoriesFlow();
-    void addCategoryFlow();
-    void deleteCategoryFlow();
-    void transactionsMenu();
-    void showTransactionsFlow();
-    void deleteTransactionFlow();
-    void statisticsMenu();
-    void showBalanceFlow();
-    void showCategoryBreakdownFlow(TransactionType type);
-    void showMonthlyBreakdownFlow();
+    void show_main_menu();
+    void add_transaction_flow(TransactionType type);
+    void categories_menu();
+    void list_categories_flow();
+    void add_category_flow();
+    void delete_category_flow();
+    void transactions_menu();
+    void show_transactions_flow();
+    void delete_transaction_flow();
+    void statistics_menu();
+    void show_balance_flow();
+    void show_category_breakdown_flow(TransactionType type);
+    void show_monthly_breakdown_flow();
 };
