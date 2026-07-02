@@ -19,11 +19,12 @@
 - компилятор с поддержкой C++20
 - CMake ≥ 3.16
 - библиотека `libsqlite3` (заголовки + shared library)
+- GoogleTest (для сборки тестов)
 
-Установка зависимости на Debian/Ubuntu:
+Установка зависимостей на Debian/Ubuntu:
 
 ```bash
-sudo apt install libsqlite3-dev
+sudo apt install libsqlite3-dev libgtest-dev
 ```
 
 ## Сборка
@@ -54,4 +55,12 @@ cmake --build build -j"$(nproc)"
 ```
 
 Дальнейшая навигация — по номерам пунктов.
+
+## Тесты
+
+Юнит-тесты (GoogleTest) покрывают слой работы с базой данных:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
 
