@@ -21,10 +21,26 @@
 - библиотека `libsqlite3` (заголовки + shared library)
 - GoogleTest (для сборки тестов)
 
-Установка зависимостей на Debian/Ubuntu:
+### Linux (Debian/Ubuntu)
 
 ```bash
 sudo apt install libsqlite3-dev libgtest-dev
+```
+
+### macOS
+
+```bash
+xcode-select --install   # компилятор
+brew install cmake googletest sqlite3
+```
+
+Homebrew ставит `sqlite3` как keg-only (не подменяет системную версию), поэтому
+CMake нужно явно направить на него и на общий префикс Homebrew через
+`CMAKE_PREFIX_PATH`:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_PREFIX_PATH="$(brew --prefix sqlite3);$(brew --prefix)"
 ```
 
 ## Сборка
@@ -32,6 +48,12 @@ sudo apt install libsqlite3-dev libgtest-dev
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j"$(nproc)"
+```
+
+На macOS вместо `nproc` используйте `sysctl -n hw.ncpu`:
+
+```bash
+cmake --build build -j"$(sysctl -n hw.ncpu)"
 ```
 
 Исполняемый файл появится в `build/family_budget`.
