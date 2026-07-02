@@ -2,10 +2,12 @@
 
 #include "database.hpp"
 
+/// \brief Консольное меню для работы с семейным бюджетом.
 class App {
 public:
     explicit App(Database& db);
 
+    /// \brief Запускает главный цикл меню.
     void run();
 
 private:
