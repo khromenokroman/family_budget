@@ -31,7 +31,7 @@ public:
     std::vector<MonthTotal> totals_by_month(int months_back) const;
 
 private:
-    sqlite3* db_ = nullptr;
+    sqlite3* m_db = nullptr;
 
     void init_schema();
 };

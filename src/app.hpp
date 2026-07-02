@@ -9,7 +9,7 @@ public:
     void run();
 
 private:
-    Database& db_;
+    Database& m_db;
 
     void show_main_menu();
     void add_transaction_flow(TransactionType type);

@@ -7,22 +7,22 @@ namespace {
 class Statement {
 public:
     Statement(sqlite3* db, const std::string& sql) {
-        if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt_, nullptr) != SQLITE_OK) {
+        if (sqlite3_prepare_v2(db, sql.c_str(), -1, &m_stmt, nullptr) != SQLITE_OK) {
             throw std::runtime_error(std::string("Ошибка подготовки запроса: ") + sqlite3_errmsg(db));
         }
     }
 
     ~Statement() {
-        sqlite3_finalize(stmt_);
+        sqlite3_finalize(m_stmt);
     }
 
     Statement(const Statement&) = delete;
     Statement& operator=(const Statement&) = delete;
 
-    sqlite3_stmt* get() const { return stmt_; }
+    sqlite3_stmt* get() const { return m_stmt; }
 
 private:
-    sqlite3_stmt* stmt_ = nullptr;
+    sqlite3_stmt* m_stmt = nullptr;
 };
 
 void bind_text(Statement& stmt, int index, const std::string& value) {
@@ -32,19 +32,19 @@ void bind_text(Statement& stmt, int index, const std::string& value) {
 } // namespace
 
 Database::Database(const std::string& path) {
-    if (sqlite3_open(path.c_str(), &db_) != SQLITE_OK) {
-        std::string msg = sqlite3_errmsg(db_);
-        sqlite3_close(db_);
-        db_ = nullptr;
+    if (sqlite3_open(path.c_str(), &m_db) != SQLITE_OK) {
+        std::string msg = sqlite3_errmsg(m_db);
+        sqlite3_close(m_db);
+        m_db = nullptr;
         throw std::runtime_error("Не удалось открыть базу данных: " + msg);
     }
-    sqlite3_exec(db_, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
+    sqlite3_exec(m_db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, nullptr);
     init_schema();
 }
 
 Database::~Database() {
-    if (db_) {
-        sqlite3_close(db_);
+    if (m_db) {
+        sqlite3_close(m_db);
     }
 }
 
@@ -68,14 +68,14 @@ void Database::init_schema() {
     )SQL";
 
     char* errMsg = nullptr;
-    if (sqlite3_exec(db_, schema, nullptr, nullptr, &errMsg) != SQLITE_OK) {
+    if (sqlite3_exec(m_db, schema, nullptr, nullptr, &errMsg) != SQLITE_OK) {
         std::string msg = errMsg ? errMsg : "неизвестная ошибка";
         sqlite3_free(errMsg);
         throw std::runtime_error("Не удалось создать схему БД: " + msg);
     }
 
     // Заполняем типичными категориями только при первом запуске (пустая таблица)
-    Statement countStmt(db_, "SELECT COUNT(*) FROM categories;");
+    Statement countStmt(m_db, "SELECT COUNT(*) FROM categories;");
     sqlite3_step(countStmt.get());
     int count = sqlite3_column_int(countStmt.get(), 0);
     if (count == 0) {
@@ -98,26 +98,26 @@ void Database::init_schema() {
 }
 
 int Database::add_category(const std::string& name, TransactionType type) {
-    Statement stmt(db_, "INSERT INTO categories (name, type) VALUES (?, ?);");
+    Statement stmt(m_db, "INSERT INTO categories (name, type) VALUES (?, ?);");
     bind_text(stmt, 1, name);
     bind_text(stmt, 2, to_string(type));
     if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        throw std::runtime_error(std::string("Не удалось добавить категорию: ") + sqlite3_errmsg(db_));
+        throw std::runtime_error(std::string("Не удалось добавить категорию: ") + sqlite3_errmsg(m_db));
     }
-    return static_cast<int>(sqlite3_last_insert_rowid(db_));
+    return static_cast<int>(sqlite3_last_insert_rowid(m_db));
 }
 
 bool Database::delete_category(int id) {
-    Statement stmt(db_, "DELETE FROM categories WHERE id = ?;");
+    Statement stmt(m_db, "DELETE FROM categories WHERE id = ?;");
     sqlite3_bind_int(stmt.get(), 1, id);
     if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        throw std::runtime_error(std::string("Не удалось удалить категорию: ") + sqlite3_errmsg(db_));
+        throw std::runtime_error(std::string("Не удалось удалить категорию: ") + sqlite3_errmsg(m_db));
     }
-    return sqlite3_changes(db_) > 0;
+    return sqlite3_changes(m_db) > 0;
 }
 
 bool Database::category_exists(const std::string& name, TransactionType type) const {
-    Statement stmt(db_, "SELECT 1 FROM categories WHERE name = ? AND type = ?;");
+    Statement stmt(m_db, "SELECT 1 FROM categories WHERE name = ? AND type = ?;");
     bind_text(stmt, 1, name);
     bind_text(stmt, 2, to_string(type));
     return sqlite3_step(stmt.get()) == SQLITE_ROW;
@@ -125,7 +125,7 @@ bool Database::category_exists(const std::string& name, TransactionType type) co
 
 std::vector<Category> Database::list_categories(TransactionType type) const {
     std::vector<Category> result;
-    Statement stmt(db_, "SELECT id, name, type FROM categories WHERE type = ? ORDER BY name;");
+    Statement stmt(m_db, "SELECT id, name, type FROM categories WHERE type = ? ORDER BY name;");
     bind_text(stmt, 1, to_string(type));
     while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
         Category c;
@@ -139,7 +139,7 @@ std::vector<Category> Database::list_categories(TransactionType type) const {
 
 std::vector<Category> Database::list_categories() const {
     std::vector<Category> result;
-    Statement stmt(db_, "SELECT id, name, type FROM categories ORDER BY type, name;");
+    Statement stmt(m_db, "SELECT id, name, type FROM categories ORDER BY type, name;");
     while (sqlite3_step(stmt.get()) == SQLITE_ROW) {
         Category c;
         c.id = sqlite3_column_int(stmt.get(), 0);
@@ -152,21 +152,21 @@ std::vector<Category> Database::list_categories() const {
 
 int Database::add_transaction(int category_id, double amount, TransactionType type,
                                const std::string& date, const std::string& note) {
-    Statement stmt(db_, "INSERT INTO transactions (category_id, amount, type, date, note) VALUES (?, ?, ?, ?, ?);");
+    Statement stmt(m_db, "INSERT INTO transactions (category_id, amount, type, date, note) VALUES (?, ?, ?, ?, ?);");
     sqlite3_bind_int(stmt.get(), 1, category_id);
     sqlite3_bind_double(stmt.get(), 2, amount);
     bind_text(stmt, 3, to_string(type));
     bind_text(stmt, 4, date);
     bind_text(stmt, 5, note);
     if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        throw std::runtime_error(std::string("Не удалось добавить операцию: ") + sqlite3_errmsg(db_));
+        throw std::runtime_error(std::string("Не удалось добавить операцию: ") + sqlite3_errmsg(m_db));
     }
-    return static_cast<int>(sqlite3_last_insert_rowid(db_));
+    return static_cast<int>(sqlite3_last_insert_rowid(m_db));
 }
 
 std::vector<Transaction> Database::list_transactions(int limit) const {
     std::vector<Transaction> result;
-    Statement stmt(db_, R"SQL(
+    Statement stmt(m_db, R"SQL(
         SELECT t.id, t.category_id, c.name, t.amount, t.type, t.date, t.note
         FROM transactions t
         JOIN categories c ON c.id = t.category_id
@@ -190,16 +190,16 @@ std::vector<Transaction> Database::list_transactions(int limit) const {
 }
 
 bool Database::delete_transaction(int id) {
-    Statement stmt(db_, "DELETE FROM transactions WHERE id = ?;");
+    Statement stmt(m_db, "DELETE FROM transactions WHERE id = ?;");
     sqlite3_bind_int(stmt.get(), 1, id);
     if (sqlite3_step(stmt.get()) != SQLITE_DONE) {
-        throw std::runtime_error(std::string("Не удалось удалить операцию: ") + sqlite3_errmsg(db_));
+        throw std::runtime_error(std::string("Не удалось удалить операцию: ") + sqlite3_errmsg(m_db));
     }
-    return sqlite3_changes(db_) > 0;
+    return sqlite3_changes(m_db) > 0;
 }
 
 double Database::total_by_type(TransactionType type) const {
-    Statement stmt(db_, "SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = ?;");
+    Statement stmt(m_db, "SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE type = ?;");
     bind_text(stmt, 1, to_string(type));
     sqlite3_step(stmt.get());
     return sqlite3_column_double(stmt.get(), 0);
@@ -207,7 +207,7 @@ double Database::total_by_type(TransactionType type) const {
 
 std::vector<CategoryTotal> Database::totals_by_category(TransactionType type) const {
     std::vector<CategoryTotal> result;
-    Statement stmt(db_, R"SQL(
+    Statement stmt(m_db, R"SQL(
         SELECT c.name, SUM(t.amount) AS total
         FROM transactions t
         JOIN categories c ON c.id = t.category_id
@@ -227,7 +227,7 @@ std::vector<CategoryTotal> Database::totals_by_category(TransactionType type) co
 
 std::vector<MonthTotal> Database::totals_by_month(int months_back) const {
     std::vector<MonthTotal> result;
-    Statement stmt(db_, R"SQL(
+    Statement stmt(m_db, R"SQL(
         SELECT strftime('%Y-%m', date) AS month,
                SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
                SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) AS expense

@@ -78,7 +78,7 @@ void print_money(double value) {
 
 } // namespace
 
-App::App(Database& db) : db_(db) {}
+App::App(Database& db) : m_db(db) {}
 
 void App::run() {
     while (true) {
@@ -109,7 +109,7 @@ void App::show_main_menu() {
 }
 
 void App::add_transaction_flow(TransactionType type) {
-    auto categories = db_.list_categories(type);
+    auto categories = m_db.list_categories(type);
     if (categories.empty()) {
         std::cout << "Нет ни одной категории для " << (type == TransactionType::Income ? "доходов" : "расходов")
                    << ". Сначала добавьте категорию.\n";
@@ -132,7 +132,7 @@ void App::add_transaction_flow(TransactionType type) {
     std::string date = read_date_or_today();
     std::string note = read_line("Комментарий (необязательно): ");
 
-    db_.add_transaction(category.id, amount, type, date, note);
+    m_db.add_transaction(category.id, amount, type, date, note);
     std::cout << (type == TransactionType::Income ? "Доход" : "Расход") << " добавлен.\n";
 }
 
@@ -157,7 +157,7 @@ void App::categories_menu() {
 }
 
 void App::list_categories_flow() {
-    auto categories = db_.list_categories();
+    auto categories = m_db.list_categories();
     if (categories.empty()) {
         std::cout << "Категорий пока нет.\n";
         return;
@@ -185,11 +185,11 @@ void App::add_category_flow() {
     std::string typeChoice = read_line("Тип (1 - доход, 2 - расход): ");
     TransactionType type = (typeChoice == "1") ? TransactionType::Income : TransactionType::Expense;
 
-    if (db_.category_exists(name, type)) {
+    if (m_db.category_exists(name, type)) {
         std::cout << "Такая категория уже существует.\n";
         return;
     }
-    db_.add_category(name, type);
+    m_db.add_category(name, type);
     std::cout << "Категория добавлена.\n";
 }
 
@@ -197,7 +197,7 @@ void App::delete_category_flow() {
     list_categories_flow();
     int id = read_menu_choice("Введите ID категории для удаления (0 - отмена): ");
     if (id == 0) return;
-    bool deleted = db_.delete_category(id);
+    bool deleted = m_db.delete_category(id);
     std::cout << (deleted ? "Категория удалена.\n" : "Категория не найдена.\n");
 }
 
@@ -220,7 +220,7 @@ void App::transactions_menu() {
 }
 
 void App::show_transactions_flow() {
-    auto transactions = db_.list_transactions(50);
+    auto transactions = m_db.list_transactions(50);
     if (transactions.empty()) {
         std::cout << "Операций пока нет.\n";
         return;
@@ -242,7 +242,7 @@ void App::delete_transaction_flow() {
     show_transactions_flow();
     int id = read_menu_choice("Введите ID операции для удаления (0 - отмена): ");
     if (id == 0) return;
-    bool deleted = db_.delete_transaction(id);
+    bool deleted = m_db.delete_transaction(id);
     std::cout << (deleted ? "Операция удалена.\n" : "Операция не найдена.\n");
 }
 
@@ -269,15 +269,15 @@ void App::statistics_menu() {
 }
 
 void App::show_balance_flow() {
-    double income = db_.total_by_type(TransactionType::Income);
-    double expense = db_.total_by_type(TransactionType::Expense);
+    double income = m_db.total_by_type(TransactionType::Income);
+    double expense = m_db.total_by_type(TransactionType::Expense);
     std::cout << "Доходы:  +"; print_money(income); std::cout << "\n";
     std::cout << "Расходы: -"; print_money(expense); std::cout << "\n";
     std::cout << "Баланс:   "; print_money(income - expense); std::cout << "\n";
 }
 
 void App::show_category_breakdown_flow(TransactionType type) {
-    auto totals = db_.totals_by_category(type);
+    auto totals = m_db.totals_by_category(type);
     if (totals.empty()) {
         std::cout << "Данных пока нет.\n";
         return;
@@ -298,7 +298,7 @@ void App::show_category_breakdown_flow(TransactionType type) {
 }
 
 void App::show_monthly_breakdown_flow() {
-    auto months = db_.totals_by_month(12);
+    auto months = m_db.totals_by_month(12);
     if (months.empty()) {
         std::cout << "Данных пока нет.\n";
         return;
