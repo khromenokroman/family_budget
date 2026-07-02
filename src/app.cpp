@@ -1,4 +1,4 @@
-#include "App.hpp"
+#include "app.hpp"
 
 #include <ctime>
 #include <iomanip>

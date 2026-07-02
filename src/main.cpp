@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 
-#include "App.hpp"
-#include "Database.hpp"
+#include "app.hpp"
+#include "database.hpp"
 
 namespace {
 

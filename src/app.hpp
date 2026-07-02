@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Database.hpp"
+#include "database.hpp"
 
 class App {
 public:

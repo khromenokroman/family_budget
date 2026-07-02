@@ -5,7 +5,7 @@
 
 #include <sqlite3.h>
 
-#include "Models.hpp"
+#include "models.hpp"
 
 class Database {
 public:

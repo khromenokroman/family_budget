@@ -7,11 +7,11 @@ find_package(SQLite3 REQUIRED)
 
 add_executable(family_budget
         src/main.cpp
-        src/Database.cpp
-        src/Database.hpp
-        src/Models.hpp
-        src/App.cpp
-        src/App.hpp
+        src/database.cpp
+        src/database.hpp
+        src/models.hpp
+        src/app.cpp
+        src/app.hpp
 )
 
 target_link_libraries(family_budget PRIVATE SQLite::SQLite3)

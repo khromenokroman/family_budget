@@ -1,4 +1,4 @@
-#include "Database.hpp"
+#include "database.hpp"
 
 #include <stdexcept>
 
